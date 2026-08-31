@@ -12,8 +12,11 @@ pipeline {
         // 배포용 Github - Sprint3를 Fork 후 Username 변경 해주세요.
         RELEASE_GITHUB_URL = 'https://github.com/YOOMYE89/kubernetes-anotherclass-sprint3.git'
         // App용 Github - Api-Tester App 소스코드를 Fork 후 Username 변경 해주세요.
-        APP_GITHUB_URL = 'https://github.com/YOOMYE89/kubernetes-anotherclass-api-tester.git'
+		// 테스트를 위해서 애플리케이션은 17버전으로
+        // APP_GITHUB_URL = 'https://github.com/YOOMYE89/kubernetes-anotherclass-api-tester.git'
+        APP_GITHUB_URL = 'https://github.com/k8s-1pro/kubernetes-anotherclass-api-tester.git'
 
+		
         APP_VERSION = '3.0.0'
         // 실습 넘버링
         CLASS_NUM = '3211'
