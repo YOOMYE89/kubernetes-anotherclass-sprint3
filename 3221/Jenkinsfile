@@ -8,9 +8,9 @@ pipeline {
 
     environment {
         // 본인의 DockerHub username로 수정 해주세요.
-        DOCKERHUB_USERNAME = '1pro'
+         DOCKERHUB_USERNAME = 'hernandezy'
         // 배포용 Github - Sprint3를 Fork 후 Username 변경 해주세요.
-        RELEASE_GITHUB_URL = 'https://github.com/k8s-1pro/kubernetes-anotherclass-sprint3.git'
+        RELEASE_GITHUB_URL = 'https://github.com/YOOMYE89/kubernetes-anotherclass-sprint3.git'
         // App용 Github - Api-Tester App 소스코드를 Fork 후 Username 변경 해주세요.
         APP_GITHUB_URL = 'https://github.com/k8s-1pro/kubernetes-anotherclass-api-tester.git'
 
@@ -48,6 +48,11 @@ pipeline {
                 // jar 파일 복사
                 sh "cp ./build/libs/app-${APP_VERSION}-SNAPSHOT.jar ./${CLASS_NUM}/build/docker/app-${APP_VERSION}-SNAPSHOT.jar"
 
+				// 도커 빌드 - [1] 중요 데이터 암호화 관리
+				withCredentials([usernamePassword(credentialsId: 'docker_password', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+					sh "echo " + '${PASSWORD}' + " | docker login -u " + '${USERNAME}' + " --password-stdin"
+				}
+				
                 // 도커 빌드
                 sh "docker build -t ${DOCKERHUB_USERNAME}/api-tester:${APP_VERSION} ./${CLASS_NUM}/build/docker"
             }
@@ -64,19 +69,21 @@ pipeline {
 
         stage('쿠버네티스 배포') {
             steps {
-                // K8S 배포
-                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/namespace.yaml"
-                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/configmap.yaml"
-                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/pod.yaml"
-                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/secret.yaml"
-                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/service-clusterip.yaml"
-                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/service-loadbalancer.yaml"
-                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/service-externalips.yaml"
-                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/service-nodeport.yaml"
-                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/deployment.yaml"
-                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/db-service-externalname.yaml"
-                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/db-service-headless.yaml"
-                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/db-statefulset.yaml"
+				withCredentials([file(credentialsId: 'k8s_master_config', variable: 'KUBECONFIG')]) {
+	                // K8S 배포
+	                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/namespace.yaml"
+	                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/configmap.yaml"
+	                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/pod.yaml"
+	                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/secret.yaml"
+	                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/service-clusterip.yaml"
+	                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/service-loadbalancer.yaml"
+	                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/service-externalips.yaml"
+	                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/service-nodeport.yaml"
+	                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/deployment.yaml"
+	                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/db-service-externalname.yaml"
+	                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/db-service-headless.yaml"
+	                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/db-statefulset.yaml"
+				}
             }
         }
     }
